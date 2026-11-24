@@ -779,47 +779,31 @@
     padding: 4px 0;
   }
 
-  /* Overview Modal & Compact Excel-style Sheet */
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    background: rgba(15, 23, 42, 0.62);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
+  .hidden {
+    display: none !important;
   }
 
-  .modal-backdrop.open {
-    display: flex;
-  }
-
-  .overview-sheet {
-    width: 100%;
-    max-width: 960px;
-    max-height: 92dvh;
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35);
+  .editor-sections {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    gap: 16px;
   }
 
-  .overview-header {
+  /* In-page Excel-style Overview View */
+  .overview-panel {
     display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .overview-head {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    padding: 13px 16px;
+    gap: 8px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
-    background: var(--card);
-    flex-shrink: 0;
   }
 
   .overview-title-group h2 {
@@ -835,47 +819,11 @@
     color: var(--text-muted);
   }
 
-  .overview-toolbar {
+  .overview-head-actions {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 6px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--card-subtle);
-    flex-shrink: 0;
-  }
-
-  .overview-toolbar-btns {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    gap: 8px;
-  }
-
-  .overview-toolbar-btns .btn {
-    min-height: 42px;
-    font-size: 13.5px;
-    font-weight: 700;
-  }
-
-  .overview-status {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--emerald);
-    text-align: center;
-    min-height: 0;
-  }
-
-  .overview-status.warn {
-    color: var(--amber);
-  }
-
-  .overview-body {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 14px 16px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    align-items: center;
   }
 
   .sheet-kpi-row {
@@ -1054,34 +1002,6 @@
     font-weight: 800;
   }
 
-  .png-preview-card {
-    border: 1px dashed var(--border-strong);
-    border-radius: 12px;
-    background: var(--card-subtle);
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .png-preview-tip {
-    font-size: 12px;
-    color: var(--text-sub);
-    margin: 0;
-    line-height: 1.45;
-  }
-
-  .png-preview-img {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: #ffffff;
-    -webkit-touch-callout: default;
-    user-select: auto;
-  }
-
   @media (max-width: 680px) {
     .share-actions { grid-template-columns: 1fr; }
   }
@@ -1095,12 +1015,6 @@
     .unit-pill { min-width: 78px; font-size: 11.5px; padding: 6px 6px; }
     .seg button { min-width: 40px; padding: 6px 8px; }
     .mr-amt { min-width: 58px; }
-    .modal-backdrop { padding: 6px; }
-    .overview-sheet { max-height: 95dvh; border-radius: 14px; }
-    .overview-header { padding: 11px 12px; }
-    .overview-toolbar { padding: 9px 12px; }
-    .overview-toolbar-btns { grid-template-columns: 1fr; }
-    .overview-body { padding: 11px 12px 16px; }
     .excel-table { font-size: 11px; }
     .excel-table th, .excel-table td { padding: 5px 6px; }
   }
@@ -1117,7 +1031,7 @@
       </div>
     </div>
     <div class="top-actions">
-      <button type="button" class="btn btn-indigo" id="topOverviewBtn">한눈에 보기</button>
+      <button type="button" class="btn btn-indigo" id="topOverviewBtn">한눈에 표 보기</button>
       <button type="button" class="btn" id="restoreDraftBtn" style="display:none;">직전 임시저장 불러오기</button>
       <button type="button" class="btn btn-soft" id="sampleBtn">예시 불러오기</button>
       <button type="button" class="btn" id="resetBlankBtn">초기화</button>
@@ -1135,26 +1049,42 @@
     </div>
   </div>
 
-  <section aria-label="차수별 금액 입력">
-    <div class="section-head" style="margin-bottom:10px;">
-      <h2 class="section-title">장소(차수)별 금액 <span class="count-chip" id="roundCountChip">1곳</span></h2>
-      <button type="button" class="btn btn-primary btn-sm" id="addRoundBtn">+ 장소 추가</button>
-    </div>
-    <div class="rounds-grid" id="roundsGrid"></div>
-  </section>
+  <div class="editor-sections" id="editorSections">
+    <section aria-label="차수별 금액 입력">
+      <div class="section-head" style="margin-bottom:10px;">
+        <h2 class="section-title">장소(차수)별 금액 <span class="count-chip" id="roundCountChip">1곳</span></h2>
+        <button type="button" class="btn btn-primary btn-sm" id="addRoundBtn">+ 장소 추가</button>
+      </div>
+      <div class="rounds-grid" id="roundsGrid"></div>
+    </section>
 
-  <section aria-label="참석 인원 관리">
-    <div class="section-head" style="margin-bottom:10px;">
-      <h2 class="section-title">참석 인원 <span class="count-chip" id="memberCountChip">0명</span></h2>
-      <span style="font-size:12px;color:var(--text-muted);">차수 추가 시 기본 불참</span>
-    </div>
-    <div class="card" style="margin-bottom:10px;">
-      <div class="add-bar">
-        <input class="input-box" id="newNames" type="text" placeholder="이름 입력 (예: 철수, 영희, 민수)" autocomplete="off" />
-        <button type="button" class="btn btn-primary" id="addBtn">+ 추가</button>
+    <section aria-label="참석 인원 관리">
+      <div class="section-head" style="margin-bottom:10px;">
+        <h2 class="section-title">참석 인원 <span class="count-chip" id="memberCountChip">0명</span></h2>
+        <span style="font-size:12px;color:var(--text-muted);">차수 추가 시 기본 불참</span>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <div class="add-bar">
+          <input class="input-box" id="newNames" type="text" placeholder="이름 입력 (예: 철수, 영희, 민수)" autocomplete="off" />
+          <button type="button" class="btn btn-primary" id="addBtn">+ 추가</button>
+        </div>
+      </div>
+      <div class="member-list" id="memberList"></div>
+    </section>
+  </div>
+
+  <section class="card overview-panel hidden" id="overviewView" aria-label="한눈에 표 보기">
+    <div class="overview-head">
+      <div class="overview-title-group">
+        <h2>[정산] 한눈에 표 보기</h2>
+        <p id="overviewSubtitle">차수별 요약 및 인원별 상세 정산표</p>
+      </div>
+      <div class="overview-head-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="overviewCopyBtn">카톡 공유용 복사</button>
+        <button type="button" class="btn btn-sm" id="backToEditBtn">← 입력 화면으로</button>
       </div>
     </div>
-    <div class="member-list" id="memberList"></div>
+    <div id="overviewSheetHtml"></div>
   </section>
 
   <section class="card summary-panel" aria-label="정산 요약 및 공유">
@@ -1190,7 +1120,7 @@
 
     <div class="share-actions">
       <button type="button" class="btn btn-primary" id="copyTextBtn">카톡 공유용 복사</button>
-      <button type="button" class="btn btn-indigo" id="openOverviewBtn">한눈에 보기 / 이미지 저장</button>
+      <button type="button" class="btn btn-indigo" id="openOverviewBtn">한눈에 표 보기</button>
       <button type="button" class="btn btn-emerald" id="copyLinkBtn">결과 링크 복사</button>
     </div>
 
@@ -1213,50 +1143,15 @@
   </footer>
 </div>
 
-<div class="modal-backdrop" id="overviewModal" role="dialog" aria-modal="true" aria-labelledby="overviewModalTitle">
-  <div class="overview-sheet">
-    <div class="overview-header">
-      <div class="overview-title-group">
-        <h2 id="overviewModalTitle">[정산] 전체 정산표 · 한눈에 보기</h2>
-        <p id="overviewSubtitle">차수별 요약 및 인원별 상세 정산표</p>
-      </div>
-      <button type="button" class="del-btn" id="closeOverviewBtn" title="닫기" aria-label="한눈에 보기 닫기">✕</button>
-    </div>
-
-    <div class="overview-toolbar">
-      <div class="overview-toolbar-btns">
-        <button type="button" class="btn btn-primary" id="savePngBtn">전체 정산표 이미지 저장(PNG)</button>
-        <button type="button" class="btn btn-emerald" id="sharePngBtn">이미지 공유</button>
-      </div>
-      <div class="overview-status" id="overviewStatus" aria-live="polite"></div>
-    </div>
-
-    <div class="overview-body">
-      <div id="overviewSheetHtml"></div>
-
-      <div class="png-preview-card">
-        <div class="sheet-block-head">
-          <h3 class="sheet-block-title">저장용 전체 정산표 이미지 (PNG)</h3>
-          <span class="sheet-block-sub">고화질 자동 생성</span>
-        </div>
-        <p class="png-preview-tip">아이폰(Safari)·카카오톡 인앱 브라우저에서 다운로드 버튼이 제한될 경우, 아래 이미지를 <strong>길게 눌러</strong> 사진 저장 또는 바로 공유할 수 있어요.</p>
-        <img id="overviewPngPreview" class="png-preview-img" alt="전체 정산표 PNG 이미지 미리보기" />
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 (() => {
   const STORAGE_KEY = "nbbang_calc_state_v1";
   const ACCOUNT_KEY = "nbbang_calc_account_v1";
 
   let isSharedView = false;
+  let isOverviewMode = false;
   let resetConfirmTimer = null;
   let statusTimer = null;
-  let overviewStatusTimer = null;
-  let lastOverviewCanvas = null;
-  let lastOverviewDataUrl = "";
 
   function loadSavedAccount() {
     try { return localStorage.getItem(ACCOUNT_KEY) || ""; } catch { return ""; }
@@ -1330,18 +1225,6 @@
     if (st === "drink") return "술";
     if (st === "nodrink") return "술X";
     return "불참";
-  }
-
-  function formatDateStamp() {
-    const now = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    return `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  }
-
-  function makePngFilename() {
-    const now = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    return `nbbang-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}.png`;
   }
 
   function encodeShareState(st) {
@@ -1735,6 +1618,7 @@
     else updateDraftButton();
     renderRounds();
     renderMembers();
+    if (isOverviewMode) renderOverviewView();
   }
 
   function setCopyStatus(msg, ok = true) {
@@ -1783,37 +1667,48 @@
     const data = computeSettlement();
     const diffStr = `${data.diff > 0 ? "+" : ""}${fmt(data.diff)}원`;
     const lines = [
-      `[정산] 총 ${fmt(data.actualSum)}원 (수금 합계 ${fmt(data.collectSum)}원 / 차액 ${diffStr})`,
-      ``,
-      `[차수별 내역]`
+      `[정산] 총 ${fmt(data.actualSum)}원`,
+      `(수금 합계 ${fmt(data.collectSum)}원 / 차액 ${diffStr})`
     ];
 
     state.rounds.forEach((r, i) => {
       const c = data.calcs[i];
       const title = r.title.trim() || `${i + 1}차`;
+      const headSummary = `${c.totalCnt}명: 술 ${c.drinkCnt} · 술X ${c.noDrinkCnt}`;
       const unitParts = [];
       if (c.drinkCnt > 0) unitParts.push(`술 ${fmt(c.drinkUnit)}원`);
       if (c.noDrinkCnt > 0) unitParts.push(`술X ${fmt(c.noDrinkUnit)}원`);
       const unitText = unitParts.length ? unitParts.join(" / ") : "참석자 없음";
 
-      lines.push(`${i + 1}. ${title} · 합계 ${fmt(c.total)}원`);
-      lines.push(`  - 항목: 음식 ${fmt(r.food)}원 / 술 ${fmt(r.alcohol)}원 / 음료 ${fmt(r.drink)}원`);
-      lines.push(`  - 인원: 총 ${c.totalCnt}명 (술 ${c.drinkCnt}명, 술X ${c.noDrinkCnt}명)`);
-      lines.push(`  - 단가: ${unitText}`);
+      lines.push(``);
+      lines.push(`■ ${title} (${fmt(c.total)}원 / ${headSummary})`);
+      lines.push(`- 음식 ${fmt(r.food)}원 (인당 ${fmt(c.foodEach)}원)`);
+      lines.push(`- 술 ${fmt(r.alcohol)}원 (인당 ${fmt(c.alcEach)}원)`);
+      lines.push(`- 음료 ${fmt(r.drink)}원 (인당 ${fmt(c.drkEach)}원)`);
+      lines.push(`→ ${unitText}`);
     });
 
     lines.push(``);
-    lines.push(`[인원별 상세 정산]`);
+    lines.push(`■ 인원별 정산`);
 
     if (data.attendingMembers.length === 0) {
       lines.push("(정산 대상 인원 없음)");
     } else {
       data.attendingMembers.forEach(m => {
-        const detail = m.perRound.map(pr => {
-          if (pr.status === "off") return `${pr.title} 불참`;
-          return `${pr.title} ${statusLabel(pr.status)} ${fmt(pr.amt)}`;
-        }).join(" / ");
-        lines.push(`• ${m.name}: 총 ${fmt(m.total)}원 (${detail})`);
+        const attendedParts = [];
+        const absentParts = [];
+        m.perRound.forEach(pr => {
+          if (pr.status === "off") {
+            absentParts.push(`${pr.title} 불참`);
+          } else {
+            attendedParts.push(`${pr.title} ${statusLabel(pr.status)} ${fmt(pr.amt)}`);
+          }
+        });
+        let detail = attendedParts.join(" + ");
+        if (absentParts.length > 0) {
+          detail = detail ? `${detail}, ${absentParts.join(", ")}` : absentParts.join(", ");
+        }
+        lines.push(`• ${m.name} : 총 ${fmt(m.total)}원 (${detail})`);
       });
       if (data.absentMembersCount > 0) {
         lines.push(`(전체 불참 ${data.absentMembersCount}명 제외)`);
@@ -1821,22 +1716,11 @@
     }
 
     lines.push("----------------");
-    lines.push(`※ 정산 기준: ${modeLabel(state.mode)} (차수 합산 후 개인 총액 적용)`);
+    lines.push(`※ 기준: ${modeLabel(state.mode)} (차수 합산 후 개인 총액 적용)`);
     if ((state.account || "").trim()) {
       lines.push(`입금 계좌: ${state.account.trim()}`);
     }
     return lines.join("\n");
-  }
-
-  function setOverviewStatus(msg, ok = true) {
-    const el = document.getElementById("overviewStatus");
-    if (!el) return;
-    el.textContent = msg;
-    el.className = ok ? "overview-status" : "overview-status warn";
-    clearTimeout(overviewStatusTimer);
-    if (msg) {
-      overviewStatusTimer = setTimeout(() => { el.textContent = ""; }, 4500);
-    }
   }
 
   function renderOverviewHtml(data) {
@@ -1979,602 +1863,25 @@
     `;
   }
 
-  function roundRectPath(ctx, x, y, w, h, r) {
-    const radius = Math.min(r, w / 2, h / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.arcTo(x + w, y, x + w, y + h, radius);
-    ctx.arcTo(x + w, y + h, x, y + h, radius);
-    ctx.arcTo(x, y + h, x, y, radius);
-    ctx.arcTo(x, y, x + w, y, radius);
-    ctx.closePath();
-  }
-
-  function fitCanvasText(ctx, text, maxW) {
-    const str = String(text ?? "");
-    if (ctx.measureText(str).width <= maxW) return str;
-    const ellipsis = "…";
-    let lo = 0;
-    let hi = str.length;
-    while (lo < hi) {
-      const mid = Math.ceil((lo + hi) / 2);
-      if (ctx.measureText(str.slice(0, mid) + ellipsis).width <= maxW) lo = mid;
-      else hi = mid - 1;
-    }
-    return str.slice(0, Math.max(1, lo)) + ellipsis;
-  }
-
-  function wrapCanvasText(ctx, text, maxW) {
-    const str = String(text ?? "").trim();
-    if (!str) return [];
-    const lines = [];
-    let current = "";
-    for (let i = 0; i < str.length; i++) {
-      const ch = str[i];
-      if (ch === "\n") {
-        lines.push(current);
-        current = "";
-        continue;
-      }
-      const next = current + ch;
-      if (current && ctx.measureText(next).width > maxW) {
-        lines.push(current);
-        current = ch;
-      } else {
-        current = next;
-      }
-    }
-    if (current) lines.push(current);
-    return lines;
-  }
-
-  function renderOverviewCanvas(data) {
-    const FONT = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif';
-    const pad = 28;
-    const minRoundColW = 116;
-    const nameColW = 112;
-    const totalColW = 122;
-    const memberTableMinW = nameColW + state.rounds.length * minRoundColW + totalColW;
-    const innerW = Math.max(820, memberTableMinW);
-    const W = innerW + pad * 2;
-
-    const accountText = (state.account || "").trim();
-    const measureCanvas = document.createElement("canvas");
-    const mctx = measureCanvas.getContext("2d");
-    mctx.font = `700 13.5px ${FONT}`;
-    const accountLines = accountText ? wrapCanvasText(mctx, accountText, innerW - 118) : [];
-
-    const headerH = 56;
-    const kpiH = 62;
-    const secTitleH = 26;
-    const t1HeadH = 34;
-    const t1RowH = 34;
-    const t1FootH = 36;
-    const t1H = t1HeadH + state.rounds.length * t1RowH + t1FootH;
-
-    const t2HeadH = 34;
-    const t2RowH = 36;
-    const t2FootH = 38;
-    const memberCount = Math.max(1, data.attendingMembers.length);
-    const t2H = t2HeadH + memberCount * t2RowH + t2FootH;
-
-    const accountBoxH = accountLines.length > 0 ? Math.max(44, 22 + accountLines.length * 20) : 0;
-    const absentLineH = data.absentMembersCount > 0 ? 20 : 0;
-    const footerH = 30;
-
-    const H = pad
-      + headerH + 14
-      + kpiH + 22
-      + secTitleH + t1H + 22
-      + secTitleH + t2H + (absentLineH ? 8 + absentLineH : 0)
-      + (accountBoxH ? 16 + accountBoxH : 0)
-      + 14 + footerH + pad;
-
-    const desiredScale = Math.max(2, Math.min(3, window.devicePixelRatio || 2));
-    const maxPixels = 14000000;
-    const scale = (W * H * desiredScale * desiredScale > maxPixels)
-      ? Math.max(1, Math.floor(Math.sqrt(maxPixels / (W * H)) * 10) / 10)
-      : desiredScale;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(W * scale);
-    canvas.height = Math.round(H * scale);
-    const ctx = canvas.getContext("2d");
-    ctx.scale(scale, scale);
-
-    // Background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, W, H);
-
-    // Top accent stripe
-    ctx.fillStyle = "#2563eb";
-    ctx.fillRect(0, 0, W, 6);
-
-    let y = pad;
-
-    // Header
-    ctx.fillStyle = "#0f172a";
-    ctx.font = `800 22px ${FONT}`;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText("[정산] 전체 정산표", pad, y + 16);
-
-    ctx.fillStyle = "#64748b";
-    ctx.font = `600 12.5px ${FONT}`;
-    ctx.fillText(`정산 기준: ${modeLabel(state.mode)} (차수 합산 후 개인 총액 적용)`, pad, y + 42);
-
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#475569";
-    ctx.font = `600 12.5px ${FONT}`;
-    ctx.fillText(formatDateStamp(), W - pad, y + 18);
-
-    ctx.fillStyle = "#2563eb";
-    ctx.font = `700 12.5px ${FONT}`;
-    ctx.fillText(`${state.rounds.length}개 장소 · 정산 인원 ${data.attendingMembers.length}명`, W - pad, y + 40);
-
-    y += headerH + 14;
-
-    // KPI boxes
-    const kpiGap = 12;
-    const kpiW = (innerW - kpiGap * 2) / 3;
-    const diffStr = `${data.diff > 0 ? "+" : ""}${fmt(data.diff)}원`;
-    const kpis = [
-      { label: "실제 결제 합계", val: `${fmt(data.actualSum)}원`, color: "#0f172a", bg: "#f8fafc", border: "#e2e8f0" },
-      { label: "수금 예정 합계", val: `${fmt(data.collectSum)}원`, color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
-      { label: "차액 (수금 - 결제)", val: diffStr, color: data.diff === 0 ? "#059669" : data.diff < 0 ? "#dc2626" : "#2563eb", bg: "#f8fafc", border: "#e2e8f0" }
-    ];
-    kpis.forEach((k, idx) => {
-      const kx = pad + idx * (kpiW + kpiGap);
-      roundRectPath(ctx, kx, y, kpiW, kpiH, 10);
-      ctx.fillStyle = k.bg;
-      ctx.fill();
-      ctx.strokeStyle = k.border;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#64748b";
-      ctx.font = `600 11.5px ${FONT}`;
-      ctx.fillText(k.label, kx + 14, y + 20);
-
-      ctx.fillStyle = k.color;
-      ctx.font = `800 18px ${FONT}`;
-      ctx.fillText(fitCanvasText(ctx, k.val, kpiW - 28), kx + 14, y + 44);
-    });
-
-    y += kpiH + 22;
-
-    // Helper for drawing a bordered table container
-    function drawCellBorders(cols, rowY, rowH) {
-      ctx.strokeStyle = "#e2e8f0";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(pad, rowY + rowH);
-      ctx.lineTo(pad + innerW, rowY + rowH);
-      let cx = pad;
-      for (let i = 0; i < cols.length - 1; i++) {
-        cx += cols[i];
-        ctx.moveTo(cx, rowY);
-        ctx.lineTo(cx, rowY + rowH);
-      }
-      ctx.stroke();
-    }
-
-    // Section 1: Rounds Summary Table
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#0f172a";
-    ctx.font = `800 14.5px ${FONT}`;
-    ctx.fillText(`1. 차수별 정산 요약 (${state.rounds.length}곳)`, pad, y + 10);
-
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#64748b";
-    ctx.font = `600 11.5px ${FONT}`;
-    ctx.fillText("단위: 원", W - pad, y + 10);
-    y += secTitleH;
-
-    const t1Ratios = [0.19, 0.11, 0.105, 0.105, 0.12, 0.14, 0.115, 0.115];
-    const t1Cols = t1Ratios.map(r => Math.floor(innerW * r));
-    t1Cols[0] += innerW - t1Cols.reduce((a, b) => a + b, 0);
-    const t1Headers = ["차수 / 장소", "음식", "술", "음료", "합계", "인원", "술 단가", "술X 단가"];
-
-    const t1StartY = y;
-    // Header bg
-    ctx.fillStyle = "#f1f5f9";
-    ctx.fillRect(pad, y, innerW, t1HeadH);
-    ctx.fillStyle = "#334155";
-    ctx.font = `700 12px ${FONT}`;
-    let cx = pad;
-    t1Headers.forEach((h, i) => {
-      if (i === 0) {
-        ctx.textAlign = "left";
-        ctx.fillText(h, cx + 10, y + t1HeadH / 2);
-      } else if (i === 5) {
-        ctx.textAlign = "center";
-        ctx.fillText(h, cx + t1Cols[i] / 2, y + t1HeadH / 2);
-      } else {
-        ctx.textAlign = "right";
-        ctx.fillText(h, cx + t1Cols[i] - 10, y + t1HeadH / 2);
-      }
-      cx += t1Cols[i];
-    });
-    drawCellBorders(t1Cols, y, t1HeadH);
-    y += t1HeadH;
-
-    state.rounds.forEach((r, idx) => {
-      const c = data.calcs[idx];
-      const title = r.title.trim() || `${idx + 1}차`;
-      const peopleStr = `${c.totalCnt}명(술${c.drinkCnt}·X${c.noDrinkCnt})`;
-      const vals = [
-        title,
-        fmt(r.food),
-        fmt(r.alcohol),
-        fmt(r.drink),
-        fmt(c.total),
-        peopleStr,
-        c.drinkCnt > 0 ? fmt(c.drinkUnit) : "-",
-        c.noDrinkCnt > 0 ? fmt(c.noDrinkUnit) : "-"
-      ];
-      if (idx % 2 === 1) {
-        ctx.fillStyle = "#f8fafc";
-        ctx.fillRect(pad, y, innerW, t1RowH);
-      }
-      cx = pad;
-      vals.forEach((v, i) => {
-        ctx.fillStyle = i === 4 ? "#0f172a" : i === 6 && c.drinkCnt > 0 ? "#1d4ed8" : i === 7 && c.noDrinkCnt > 0 ? "#047857" : "#1e293b";
-        ctx.font = (i === 0 || i === 4 || i === 6 || i === 7) ? `700 12.5px ${FONT}` : `500 12.5px ${FONT}`;
-        const fitted = fitCanvasText(ctx, v, t1Cols[i] - 16);
-        if (i === 0) {
-          ctx.textAlign = "left";
-          ctx.fillText(fitted, cx + 10, y + t1RowH / 2);
-        } else if (i === 5) {
-          ctx.textAlign = "center";
-          ctx.fillText(fitted, cx + t1Cols[i] / 2, y + t1RowH / 2);
-        } else {
-          ctx.textAlign = "right";
-          ctx.fillText(fitted, cx + t1Cols[i] - 10, y + t1RowH / 2);
-        }
-        cx += t1Cols[i];
-      });
-      drawCellBorders(t1Cols, y, t1RowH);
-      y += t1RowH;
-    });
-
-    // Table 1 Footer
-    ctx.fillStyle = "#eff6ff";
-    ctx.fillRect(pad, y, innerW, t1FootH);
-    const t1FootVals = [
-      "합계",
-      fmt(data.roundTotals.food),
-      fmt(data.roundTotals.alcohol),
-      fmt(data.roundTotals.drink),
-      fmt(data.roundTotals.total),
-      `${state.rounds.length}곳`,
-      "-",
-      "-"
-    ];
-    cx = pad;
-    t1FootVals.forEach((v, i) => {
-      ctx.fillStyle = i === 4 ? "#1d4ed8" : "#0f172a";
-      ctx.font = `800 12.5px ${FONT}`;
-      if (i === 0) {
-        ctx.textAlign = "left";
-        ctx.fillText(v, cx + 10, y + t1FootH / 2);
-      } else if (i === 5 || i === 6 || i === 7) {
-        ctx.textAlign = "center";
-        ctx.fillText(v, cx + t1Cols[i] / 2, y + t1FootH / 2);
-      } else {
-        ctx.textAlign = "right";
-        ctx.fillText(fitCanvasText(ctx, v, t1Cols[i] - 16), cx + t1Cols[i] - 10, y + t1FootH / 2);
-      }
-      cx += t1Cols[i];
-    });
-    drawCellBorders(t1Cols, y, t1FootH);
-    y += t1FootH;
-
-    // Outer border Table 1
-    ctx.strokeStyle = "#cbd5e1";
-    ctx.lineWidth = 1.2;
-    ctx.strokeRect(pad, t1StartY, innerW, t1H);
-
-    y += 22;
-
-    // Section 2: Members Breakdown Table
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#0f172a";
-    ctx.font = `800 14.5px ${FONT}`;
-    ctx.fillText(`2. 인원별 상세 정산표 (${data.attendingMembers.length}명)`, pad, y + 10);
-
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#64748b";
-    ctx.font = `600 11.5px ${FONT}`;
-    ctx.fillText("술(파랑) · 술X(초록) · 불참(-)", W - pad, y + 10);
-    y += secTitleH;
-
-    const roundCount = state.rounds.length;
-    const remW = innerW - nameColW - totalColW;
-    const eachRoundW = Math.floor(remW / roundCount);
-    const t2Cols = [nameColW];
-    for (let i = 0; i < roundCount; i++) t2Cols.push(eachRoundW);
-    t2Cols.push(totalColW);
-    t2Cols[0] += innerW - t2Cols.reduce((a, b) => a + b, 0);
-
-    const t2StartY = y;
-    ctx.fillStyle = "#f1f5f9";
-    ctx.fillRect(pad, y, innerW, t2HeadH);
-    ctx.fillStyle = "#334155";
-    ctx.font = `700 12px ${FONT}`;
-    cx = pad;
-    ctx.textAlign = "left";
-    ctx.fillText("이름", cx + 10, y + t2HeadH / 2);
-    cx += t2Cols[0];
-
-    state.rounds.forEach((r, ri) => {
-      const title = r.title.trim() || `${ri + 1}차`;
-      ctx.textAlign = "center";
-      ctx.fillText(fitCanvasText(ctx, title, t2Cols[ri + 1] - 14), cx + t2Cols[ri + 1] / 2, y + t2HeadH / 2);
-      cx += t2Cols[ri + 1];
-    });
-    ctx.textAlign = "right";
-    ctx.fillText("총금액", cx + t2Cols[t2Cols.length - 1] - 10, y + t2HeadH / 2);
-    drawCellBorders(t2Cols, y, t2HeadH);
-    y += t2HeadH;
-
-    if (data.attendingMembers.length === 0) {
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = `600 13px ${FONT}`;
-      ctx.textAlign = "center";
-      ctx.fillText("참석 표시된 인원이 없습니다.", pad + innerW / 2, y + t2RowH / 2);
-      y += t2RowH;
-    } else {
-      data.attendingMembers.forEach((m, rowIdx) => {
-        if (rowIdx % 2 === 1) {
-          ctx.fillStyle = "#f8fafc";
-          ctx.fillRect(pad, y, innerW, t2RowH);
-        }
-        cx = pad;
-        ctx.fillStyle = "#0f172a";
-        ctx.font = `700 13px ${FONT}`;
-        ctx.textAlign = "left";
-        ctx.fillText(fitCanvasText(ctx, m.name, t2Cols[0] - 16), cx + 10, y + t2RowH / 2);
-        cx += t2Cols[0];
-
-        m.perRound.forEach((pr, ri) => {
-          const colW = t2Cols[ri + 1];
-          if (pr.status === "off") {
-            ctx.fillStyle = "#94a3b8";
-            ctx.font = `600 12.5px ${FONT}`;
-            ctx.textAlign = "center";
-            ctx.fillText("-", cx + colW / 2, y + t2RowH / 2);
-          } else {
-            const isDrink = pr.status === "drink";
-            const badgeText = isDrink ? "술" : "술X";
-            const badgeW = isDrink ? 20 : 28;
-            const badgeH = 18;
-            const bx = cx + 8;
-            const by = y + (t2RowH - badgeH) / 2;
-            roundRectPath(ctx, bx, by, badgeW, badgeH, 4);
-            ctx.fillStyle = isDrink ? "#dbeafe" : "#d1fae5";
-            ctx.fill();
-
-            ctx.fillStyle = isDrink ? "#1d4ed8" : "#047857";
-            ctx.font = `700 10.5px ${FONT}`;
-            ctx.textAlign = "center";
-            ctx.fillText(badgeText, bx + badgeW / 2, y + t2RowH / 2 + 0.5);
-
-            ctx.fillStyle = "#1e293b";
-            ctx.font = `600 12.5px ${FONT}`;
-            ctx.textAlign = "right";
-            const amtAvailW = colW - badgeW - 22;
-            ctx.fillText(fitCanvasText(ctx, fmt(pr.amt), amtAvailW), cx + colW - 8, y + t2RowH / 2);
-          }
-          cx += colW;
-        });
-
-        const totColW = t2Cols[t2Cols.length - 1];
-        ctx.fillStyle = "#1d4ed8";
-        ctx.font = `800 13.5px ${FONT}`;
-        ctx.textAlign = "right";
-        ctx.fillText(fitCanvasText(ctx, `${fmt(m.total)}원`, totColW - 16), cx + totColW - 10, y + t2RowH / 2);
-
-        drawCellBorders(t2Cols, y, t2RowH);
-        y += t2RowH;
-      });
-    }
-
-    // Table 2 Footer
-    ctx.fillStyle = "#eff6ff";
-    ctx.fillRect(pad, y, innerW, t2FootH);
-    cx = pad;
-    ctx.fillStyle = "#0f172a";
-    ctx.font = `800 12.5px ${FONT}`;
-    ctx.textAlign = "left";
-    ctx.fillText("합계", cx + 10, y + t2FootH / 2);
-    cx += t2Cols[0];
-
-    state.rounds.forEach((_, ri) => {
-      const colW = t2Cols[ri + 1];
-      ctx.fillStyle = "#334155";
-      ctx.font = `700 12.5px ${FONT}`;
-      ctx.textAlign = "right";
-      ctx.fillText(fitCanvasText(ctx, fmt(data.calcs[ri].total), colW - 14), cx + colW - 8, y + t2FootH / 2);
-      cx += colW;
-    });
-
-    const totColW = t2Cols[t2Cols.length - 1];
-    ctx.fillStyle = "#1d4ed8";
-    ctx.font = `800 14px ${FONT}`;
-    ctx.textAlign = "right";
-    ctx.fillText(fitCanvasText(ctx, `${fmt(data.collectSum)}원`, totColW - 16), cx + totColW - 10, y + t2FootH / 2);
-    drawCellBorders(t2Cols, y, t2FootH);
-    y += t2FootH;
-
-    // Outer border Table 2
-    ctx.strokeStyle = "#cbd5e1";
-    ctx.lineWidth = 1.2;
-    ctx.strokeRect(pad, t2StartY, innerW, t2H);
-
-    if (data.absentMembersCount > 0) {
-      y += 8;
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#64748b";
-      ctx.font = `600 11.5px ${FONT}`;
-      ctx.fillText(`* 전체 불참 인원 ${data.absentMembersCount}명은 표에서 제외되었습니다.`, W - pad, y + 10);
-      y += absentLineH;
-    }
-
-    if (accountLines.length > 0) {
-      y += 16;
-      roundRectPath(ctx, pad, y, innerW, accountBoxH, 10);
-      ctx.fillStyle = "#f0fdf4";
-      ctx.fill();
-      ctx.strokeStyle = "#86efac";
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#047857";
-      ctx.font = `800 13.5px ${FONT}`;
-      ctx.fillText("입금 계좌", pad + 14, y + 22);
-
-      ctx.fillStyle = "#0f172a";
-      ctx.font = `700 13.5px ${FONT}`;
-      accountLines.forEach((line, li) => {
-        ctx.fillText(line, pad + 92, y + 22 + li * 20);
-      });
-      y += accountBoxH;
-    }
-
-    y += 14;
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = `500 11.5px ${FONT}`;
-    ctx.fillText("N빵 정산기 · 차수별 음식·술·음료 자동 분리 정산", pad, y + 14);
-
-    ctx.textAlign = "right";
-    ctx.fillText(`차액 ${diffStr} (${modeLabel(state.mode)})`, W - pad, y + 14);
-
-    return canvas;
-  }
-
-  function canvasToPngBlob(canvas) {
-    return new Promise((resolve, reject) => {
-      if (canvas.toBlob) {
-        canvas.toBlob(blob => {
-          if (blob) resolve(blob);
-          else reject(new Error("PNG 생성에 실패했습니다."));
-        }, "image/png");
-        return;
-      }
-      try {
-        const dataUrl = canvas.toDataURL("image/png");
-        const parts = dataUrl.split(",");
-        const bin = atob(parts[1]);
-        const arr = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-        resolve(new Blob([arr], { type: "image/png" }));
-      } catch (err) {
-        reject(err);
-      }
-    });
-  }
-
-  function triggerPngDownload(blob, dataUrl, filename) {
-    const a = document.createElement("a");
-    let objectUrl = null;
-    if (blob && typeof URL !== "undefined" && URL.createObjectURL) {
-      objectUrl = URL.createObjectURL(blob);
-      a.href = objectUrl;
-    } else {
-      a.href = dataUrl;
-    }
-    a.download = filename;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    if (objectUrl) {
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
-    }
-  }
-
-  function openOverviewModal() {
+  function renderOverviewView() {
     const data = computeSettlement();
     document.getElementById("overviewSubtitle").textContent = `${state.rounds.length}개 장소 · 정산 인원 ${data.attendingMembers.length}명 · ${modeLabel(state.mode)}`;
     document.getElementById("overviewSheetHtml").innerHTML = renderOverviewHtml(data);
-    setOverviewStatus("");
-
-    try {
-      const canvas = renderOverviewCanvas(data);
-      lastOverviewCanvas = canvas;
-      lastOverviewDataUrl = canvas.toDataURL("image/png");
-      const img = document.getElementById("overviewPngPreview");
-      img.src = lastOverviewDataUrl;
-    } catch {
-      lastOverviewCanvas = null;
-      lastOverviewDataUrl = "";
-      setOverviewStatus("이미지 미리보기 생성 중 오류가 발생했어요. 표를 캡쳐해 이용해 주세요.", false);
-    }
-
-    const modal = document.getElementById("overviewModal");
-    modal.classList.add("open");
-    document.body.style.overflow = "hidden";
   }
 
-  function closeOverviewModal() {
-    const modal = document.getElementById("overviewModal");
-    modal.classList.remove("open");
-    document.body.style.overflow = "";
-  }
-
-  async function saveOverviewPng() {
-    const data = computeSettlement();
-    const canvas = lastOverviewCanvas || renderOverviewCanvas(data);
-    const dataUrl = lastOverviewDataUrl || canvas.toDataURL("image/png");
-    const filename = makePngFilename();
-    try {
-      const blob = await canvasToPngBlob(canvas);
-      triggerPngDownload(blob, dataUrl, filename);
-      setOverviewStatus("PNG 이미지를 저장했어요! (인앱 브라우저에서는 아래 이미지를 길게 눌러 저장해 주세요)", true);
-    } catch {
-      triggerPngDownload(null, dataUrl, filename);
-      setOverviewStatus("저장이 안 되면 아래 이미지를 길게 눌러 사진 저장을 이용해 주세요.", false);
-    }
-  }
-
-  async function shareOverviewPng() {
-    const data = computeSettlement();
-    const canvas = lastOverviewCanvas || renderOverviewCanvas(data);
-    const dataUrl = lastOverviewDataUrl || canvas.toDataURL("image/png");
-    const filename = makePngFilename();
-    let blob = null;
-    try {
-      blob = await canvasToPngBlob(canvas);
-    } catch {}
-
-    if (blob && typeof File !== "undefined" && navigator.share) {
-      try {
-        const file = new File([blob], filename, { type: "image/png" });
-        const sharePayload = {
-          files: [file],
-          title: "[정산] 전체 정산표",
-          text: `[정산] 총 ${fmt(data.actualSum)}원 정산표입니다.`
-        };
-        if (!navigator.canShare || navigator.canShare({ files: [file] })) {
-          await navigator.share(sharePayload);
-          setOverviewStatus("정산표 이미지를 공유했어요!", true);
-          return;
-        }
-      } catch (err) {
-        if (err && err.name === "AbortError") {
-          setOverviewStatus("공유를 취소했어요.", true);
-          return;
-        }
+  function setOverviewMode(on, scrollTop = false) {
+    isOverviewMode = Boolean(on);
+    document.getElementById("editorSections").classList.toggle("hidden", isOverviewMode);
+    document.getElementById("overviewView").classList.toggle("hidden", !isOverviewMode);
+    const label = isOverviewMode ? "입력 화면으로" : "한눈에 표 보기";
+    document.getElementById("topOverviewBtn").textContent = label;
+    document.getElementById("openOverviewBtn").textContent = label;
+    if (isOverviewMode) {
+      renderOverviewView();
+      if (scrollTop && typeof window.scrollTo === "function") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }
-
-    // Fallback to PNG download
-    triggerPngDownload(blob, dataUrl, filename);
-    setOverviewStatus("이 브라우저는 바로 공유를 지원하지 않아 PNG로 저장했어요. 아래 이미지를 길게 눌러 공유할 수도 있어요.", false);
   }
 
   function addMembersFromInput() {
@@ -2760,25 +2067,32 @@
   document.getElementById("accountInput").addEventListener("input", e => {
     state.account = e.target.value;
     saveState();
+    if (isOverviewMode) renderOverviewView();
   });
 
   document.getElementById("copyTextBtn").addEventListener("click", () => {
     copyWithFallback(buildKakaoText(), "카톡 공유용 상세 내역");
   });
 
-  document.getElementById("topOverviewBtn").addEventListener("click", openOverviewModal);
-  document.getElementById("openOverviewBtn").addEventListener("click", openOverviewModal);
-  document.getElementById("closeOverviewBtn").addEventListener("click", closeOverviewModal);
-  document.getElementById("savePngBtn").addEventListener("click", saveOverviewPng);
-  document.getElementById("sharePngBtn").addEventListener("click", shareOverviewPng);
+  document.getElementById("overviewCopyBtn").addEventListener("click", () => {
+    copyWithFallback(buildKakaoText(), "카톡 공유용 상세 내역");
+  });
 
-  document.getElementById("overviewModal").addEventListener("click", e => {
-    if (e.target === e.currentTarget) closeOverviewModal();
+  document.getElementById("topOverviewBtn").addEventListener("click", () => {
+    setOverviewMode(!isOverviewMode, true);
+  });
+
+  document.getElementById("openOverviewBtn").addEventListener("click", () => {
+    setOverviewMode(!isOverviewMode, true);
+  });
+
+  document.getElementById("backToEditBtn").addEventListener("click", () => {
+    setOverviewMode(false, false);
   });
 
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && document.getElementById("overviewModal").classList.contains("open")) {
-      closeOverviewModal();
+    if (e.key === "Escape" && isOverviewMode) {
+      setOverviewMode(false, false);
     }
   });
 
