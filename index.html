@@ -1118,6 +1118,7 @@
     </div>
     <div class="top-actions">
       <button type="button" class="btn btn-indigo" id="topOverviewBtn">한눈에 보기</button>
+      <button type="button" class="btn" id="restoreDraftBtn" style="display:none;">직전 임시저장 불러오기</button>
       <button type="button" class="btn btn-soft" id="sampleBtn">예시 불러오기</button>
       <button type="button" class="btn" id="resetBlankBtn">초기화</button>
     </div>
@@ -1415,14 +1416,19 @@
     }
   }
 
-  function loadLocalState() {
+  function hasMeaningfulData(st) {
+    if (!st || !Array.isArray(st.rounds) || !Array.isArray(st.members)) return false;
+    return st.members.length > 0 || st.rounds.length > 1 || st.rounds.some(r => r.food || r.alcohol || r.drink);
+  }
+
+  function loadSavedDraft() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.rounds) && parsed.rounds.length > 0 && Array.isArray(parsed.members)) {
           const validModes = ["floor100", "round100", "exact"];
-          return {
+          const normalized = {
             account: typeof parsed.account === "string" ? parsed.account : loadSavedAccount(),
             mode: validModes.includes(parsed.mode) ? parsed.mode : "floor100",
             rounds: parsed.rounds.map((r, i) => ({
@@ -1439,10 +1445,15 @@
               })
             }))
           };
+          if (hasMeaningfulData(normalized)) return normalized;
         }
       }
     } catch {}
-    return blankState(true);
+    return null;
+  }
+
+  function clearSavedDraft() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
   }
 
   let state = null;
@@ -1453,7 +1464,7 @@
       state = shared;
       isSharedView = true;
     } else {
-      state = loadLocalState();
+      state = blankState(true);
       isSharedView = false;
     }
     updateSharedBanner();
@@ -1462,6 +1473,13 @@
   function updateSharedBanner() {
     const banner = document.getElementById("sharedBanner");
     banner.classList.toggle("visible", isSharedView);
+  }
+
+  function updateDraftButton() {
+    const btn = document.getElementById("restoreDraftBtn");
+    if (!btn) return;
+    const canRestore = !isSharedView && !hasMeaningfulData(state) && Boolean(loadSavedDraft());
+    btn.style.display = canRestore ? "" : "none";
   }
 
   function clearUrlHash() {
@@ -1475,9 +1493,12 @@
   function saveState() {
     if (isSharedView) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (hasMeaningfulData(state)) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
       saveSavedAccount(state.account);
     } catch {}
+    updateDraftButton();
   }
 
   function calcRound(idx) {
@@ -1707,10 +1728,11 @@
     diffEl.className = `kpi-val ${diff === 0 ? "pos" : diff < 0 ? "neg" : "primary"}`;
   }
 
-  function refresh() {
+  function refresh(persist = true) {
     document.getElementById("roundMode").value = state.mode;
     document.getElementById("accountInput").value = state.account || "";
-    saveState();
+    if (persist) saveState();
+    else updateDraftButton();
     renderRounds();
     renderMembers();
   }
@@ -2668,9 +2690,24 @@
 
   document.getElementById("sampleBtn").addEventListener("click", loadExample);
 
+  document.getElementById("restoreDraftBtn").addEventListener("click", () => {
+    const draft = loadSavedDraft();
+    if (!draft) {
+      updateDraftButton();
+      setCopyStatus("불러올 임시저장 내역이 없어요.", false);
+      return;
+    }
+    isSharedView = false;
+    clearUrlHash();
+    updateSharedBanner();
+    state = draft;
+    refresh(true);
+    setCopyStatus("직전 임시저장 내역을 불러왔어요.", true);
+  });
+
   const resetBtn = document.getElementById("resetBlankBtn");
   resetBtn.addEventListener("click", () => {
-    const hasData = state.members.length > 0 || state.rounds.length > 1 || state.rounds.some(r => r.food || r.alcohol || r.drink);
+    const hasData = hasMeaningfulData(state);
     if (hasData && resetBtn.dataset.armed !== "1") {
       resetBtn.dataset.armed = "1";
       resetBtn.textContent = "한 번 더 눌러 초기화";
@@ -2689,10 +2726,11 @@
     resetBtn.classList.remove("btn-danger-confirm");
     isSharedView = false;
     clearUrlHash();
+    clearSavedDraft();
     updateSharedBanner();
     state = blankState(true);
     document.getElementById("fallbackBox").classList.remove("visible");
-    refresh();
+    refresh(false);
     setCopyStatus("빈 양식으로 초기화했어요.", true);
   });
 
@@ -2702,7 +2740,7 @@
     updateSharedBanner();
     state = blankState(true);
     document.getElementById("fallbackBox").classList.remove("visible");
-    refresh();
+    refresh(false);
     setCopyStatus("새 정산을 시작합니다.", true);
   });
 
@@ -2764,11 +2802,11 @@
 
   window.addEventListener("hashchange", () => {
     initFromLocation();
-    refresh();
+    refresh(false);
   });
 
   initFromLocation();
-  refresh();
+  refresh(false);
 })();
 </script>
 </body>
