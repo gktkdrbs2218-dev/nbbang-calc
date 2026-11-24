@@ -1,0 +1,17 @@
+{
+  "name": "N빵 정산기 · 차수별 술/음료 분리",
+  "short_name": "N빵 정산기",
+  "description": "회식·모임 차수별 음식·술·음료를 자동으로 분리 정산하는 모바일 N빵 계산기",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f5f8",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>N빵 정산기 · 차수별 술/음료 분리</title>
+<meta name="description" content="회식·모임 차수별 음식·술·음료를 자동으로 분리 정산하고 카카오톡 텍스트와 결과 링크로 바로 공유하는 모바일 N빵 계산기" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="N빵 정산기 · 차수별 술/음료 분리" />
+<meta property="og:description" content="1차·2차·3차 무제한 추가, 술/음료 자동 분리, 카톡 공유 및 결과 링크 전송까지 모바일에서 바로 정산하세요." />
+<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="N빵 정산기" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232563eb'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='sans-serif' font-size='32' font-weight='800' fill='%23ffffff'%3EN%3C/text%3E%3Ccircle cx='49' cy='17' r='6' fill='%2310b981'/%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="./icon.svg" />
+<style>
+  :root {
+    --bg: #f3f5f8;
+    --card: #ffffff;
+    --card-subtle: #f8fafc;
+    --text: #0f172a;
+    --text-sub: #475569;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-soft: rgba(37, 99, 235, 0.11);
+    --emerald: #059669;
+    --emerald-soft: rgba(5, 150, 105, 0.12);
+    --amber: #d97706;
+    --amber-soft: rgba(217, 119, 6, 0.12);
+    --danger: #dc2626;
+    --danger-soft: rgba(220, 38, 38, 0.1);
+    --seg-off-bg: #e2e8f0;
+    --seg-off-text: #334155;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.03);
+    --radius: 14px;
+    --radius-sm: 10px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1120;
+      --card: #151e2e;
+      --card-subtle: #1c273b;
+      --text: #f1f5f9;
+      --text-sub: #cbd5e1;
+      --text-muted: #94a3b8;
+      --border: #26334a;
+      --border-strong: #364766;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-soft: rgba(59, 130, 246, 0.18);
+      --emerald: #10b981;
+      --emerald-soft: rgba(16, 185, 129, 0.18);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.18);
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.16);
+      --seg-off-bg: #2a374f;
+      --seg-off-text: #e2e8f0;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    padding: 14px 14px calc(32px + env(safe-area-inset-bottom));
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.45;
+    font-size: 15px;
+    min-height: 100dvh;
+  }
+
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 2px 2px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 19px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .brand-icon::after {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #34d399;
+  }
+
+  .brand h1 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .brand p {
+    margin: 1px 0 0;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  .top-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Buttons */
+  .btn {
+    appearance: none;
+    border: 1px solid var(--border-strong);
+    background: var(--card);
+    color: var(--text);
+    min-height: 40px;
+    padding: 8px 13px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    touch-action: manipulation;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+  }
+
+  .btn:hover {
+    background: var(--card-subtle);
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+  }
+
+  .btn-emerald {
+    background: var(--emerald);
+    color: #ffffff;
+    border-color: var(--emerald);
+  }
+
+  .btn-emerald:hover {
+    opacity: 0.92;
+  }
+
+  .btn-soft {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: transparent;
+  }
+
+  .btn-danger-confirm {
+    background: var(--danger);
+    color: #ffffff;
+    border-color: var(--danger);
+  }
+
+  .btn-sm {
+    min-height: 32px;
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  /* Shared Link Banner */
+  .shared-banner {
+    display: none;
+    background: var(--primary-soft);
+    border: 1px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 13px 14px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .shared-banner.visible {
+    display: flex;
+  }
+
+  .shared-banner-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .shared-banner-sub {
+    font-size: 12.5px;
+    color: var(--text-sub);
+    margin-top: 2px;
+  }
+
+  .shared-banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Section Headers */
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 0 2px;
+  }
+
+  .section-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .count-chip {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+  }
+
+  .rounds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 12px;
+  }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .round-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .round-title-input {
+    width: 100%;
+    max-width: 170px;
+    font-size: 16px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    background: var(--card-subtle);
+    color: var(--text);
+    padding: 6px 9px;
+    border-radius: 8px;
+    font-family: inherit;
+  }
+
+  .round-title-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--card);
+  }
+
+  .round-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .round-headcount {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .field-row label {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--text-sub);
+  }
+
+  .input-box, .select-box {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--border-strong);
+    background: var(--card);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 8px 11px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+  }
+
+  .input-box:focus, .select-box:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+
+  .num-input {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+
+  .unit-pill {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    background: var(--card-subtle);
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-variant-numeric: tabular-nums;
+    min-width: 86px;
+    text-align: right;
+  }
+
+  .round-warn {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--amber);
+    background: var(--amber-soft);
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-top: 6px;
+  }
+
+  .bulk-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .bulk-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-right: 2px;
+  }
+
+  .round-summary {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-strong);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+  }
+
+  .round-total {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .badge-alt {
+    background: var(--emerald-soft);
+    color: var(--emerald);
+  }
+
+  /* Add member bar */
+  .add-bar {
+    display: flex;
+    gap: 8px;
+  }
+
+  .add-bar .input-box {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Members */
+  .member-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 10px;
+  }
+
+  .empty-card {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .empty-card p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .member-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .member-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .member-name {
+    font-weight: 800;
+    font-size: 15.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .member-top-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .member-total {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .member-rounds {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mr-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mr-label {
+    color: var(--text-sub);
+    font-weight: 600;
+    font-size: 13px;
+    min-width: 56px;
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mr-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .mr-amt {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 64px;
+    text-align: right;
+  }
+
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--border-strong);
+    border-radius: 9px;
+    overflow: hidden;
+    background: var(--card-subtle);
+  }
+
+  .seg button {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    min-height: 36px;
+    min-width: 44px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    font-family: inherit;
+  }
+
+  .seg button + button {
+    border-left: 1px solid var(--border);
+  }
+
+  .seg button.on-drink {
+    background: var(--primary);
+    color: #ffffff;
+  }
+
+  .seg button.on-nodrink {
+    background: var(--emerald);
+    color: #ffffff;
+  }
+
+  .seg button.on-off {
+    background: var(--seg-off-bg);
+    color: var(--seg-off-text);
+  }
+
+  .del-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    touch-action: manipulation;
+  }
+
+  .del-btn:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+
+  /* Settlement Summary & Share Panel */
+  .summary-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .kpi-box {
+    background: var(--card-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .kpi-label {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .kpi-val {
+    font-size: 15.5px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .kpi-val.primary { color: var(--primary); }
+  .kpi-val.pos { color: var(--emerald); }
+  .kpi-val.neg { color: var(--danger); }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 10px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .form-group label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-sub);
+  }
+
+  .share-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .share-actions .btn {
+    min-height: 46px;
+    font-size: 14.5px;
+    font-weight: 700;
+  }
+
+  .copy-status {
+    font-size: 13px;
+    font-weight: 700;
+    min-height: 20px;
+    color: var(--emerald);
+    text-align: center;
+  }
+
+  .copy-status.warn {
+    color: var(--amber);
+  }
+
+  .fallback-box {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--card-subtle);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+  }
+
+  .fallback-box.visible {
+    display: flex;
+  }
+
+  .fallback-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-sub);
+  }
+
+  .preview-box {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    background: var(--card);
+    color: var(--text);
+    font-family: inherit;
+    resize: vertical;
+  }
+
+  .footer-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 4px 0;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 12px 12px calc(28px + env(safe-area-inset-bottom)); }
+    .settings-grid { grid-template-columns: 1fr; }
+    .share-actions { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .kpi-box { padding: 9px 7px; }
+    .kpi-val { font-size: 14px; }
+    .unit-pill { min-width: 78px; font-size: 11.5px; padding: 6px 6px; }
+    .seg button { min-width: 40px; padding: 6px 8px; }
+    .mr-amt { min-width: 58px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">N</div>
+      <div>
+        <h1>N빵 정산기</h1>
+        <p>차수별 음식·술·음료 자동 분리 정산</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="btn btn-soft" id="sampleBtn">예시 불러오기</button>
+      <button type="button" class="btn" id="resetBlankBtn">초기화</button>
+    </div>
+  </header>
+
+  <div class="shared-banner" id="sharedBanner" role="status">
+    <div>
+      <div class="shared-banner-title">🔗 공유받은 정산 내역을 보고 있어요</div>
+      <div class="shared-banner-sub">인원이나 금액을 눌러 바로 확인해 볼 수 있고, 내 정산을 새로 시작할 수도 있어요.</div>
+    </div>
+    <div class="shared-banner-actions">
+      <button type="button" class="btn btn-primary btn-sm" id="startFreshBtn">내 정산으로 새로 시작</button>
+      <button type="button" class="btn btn-sm" id="adoptSharedBtn">내 기기에 저장해서 편집</button>
+    </div>
+  </div>
+
+  <section aria-label="차수별 금액 입력">
+    <div class="section-head" style="margin-bottom:10px;">
+      <h2 class="section-title">장소(차수)별 금액 <span class="count-chip" id="roundCountChip">1곳</span></h2>
+      <button type="button" class="btn btn-primary btn-sm" id="addRoundBtn">+ 장소 추가</button>
+    </div>
+    <div class="rounds-grid" id="roundsGrid"></div>
+  </section>
+
+  <section aria-label="참석 인원 관리">
+    <div class="section-head" style="margin-bottom:10px;">
+      <h2 class="section-title">참석 인원 <span class="count-chip" id="memberCountChip">0명</span></h2>
+      <span style="font-size:12px;color:var(--text-muted);">차수 추가 시 기본 불참</span>
+    </div>
+    <div class="card" style="margin-bottom:10px;">
+      <div class="add-bar">
+        <input class="input-box" id="newNames" type="text" placeholder="이름 입력 (예: 철수, 영희, 민수)" autocomplete="off" />
+        <button type="button" class="btn btn-primary" id="addBtn">+ 추가</button>
+      </div>
+    </div>
+    <div class="member-list" id="memberList"></div>
+  </section>
+
+  <section class="card summary-panel" aria-label="정산 요약 및 공유">
+    <div class="kpi-grid">
+      <div class="kpi-box">
+        <span class="kpi-label">실제 결제 합계</span>
+        <span class="kpi-val" id="actualTotal">0원</span>
+      </div>
+      <div class="kpi-box">
+        <span class="kpi-label">수금 예정 합계</span>
+        <span class="kpi-val primary" id="collectTotal">0원</span>
+      </div>
+      <div class="kpi-box">
+        <span class="kpi-label">차액</span>
+        <span class="kpi-val" id="diffText">0원</span>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <div class="form-group">
+        <label for="roundMode">절사 / 반올림 기준</label>
+        <select id="roundMode" class="select-box">
+          <option value="floor100">100원 미만 버림</option>
+          <option value="round100">100원 단위 반올림</option>
+          <option value="exact">1원 단위</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="accountInput">입금 계좌 (선택 · 자동 저장)</label>
+        <input class="input-box" id="accountInput" type="text" placeholder="예: 카카오뱅크 3333-01-0000000 홍길동" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="share-actions">
+      <button type="button" class="btn btn-primary" id="copyTextBtn">카톡 공유용 텍스트 복사</button>
+      <button type="button" class="btn btn-emerald" id="copyLinkBtn">결과 링크 복사</button>
+    </div>
+
+    <div class="copy-status" id="copyStatus" aria-live="polite"></div>
+
+    <div class="fallback-box" id="fallbackBox">
+      <div class="fallback-head">
+        <span id="fallbackTitle">복사 내용</span>
+        <div style="display:flex;gap:6px;">
+          <button type="button" class="btn btn-sm" id="selectAllBtn">전체 선택</button>
+          <button type="button" class="btn btn-sm" id="closeFallbackBtn">닫기</button>
+        </div>
+      </div>
+      <textarea id="copyPreview" class="preview-box" rows="6" readonly></textarea>
+    </div>
+  </section>
+
+  <footer class="footer-note">
+    입력한 정보는 서버에 저장되지 않고 내 브라우저에만 보관됩니다.
+  </footer>
+</div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "nbbang_calc_state_v1";
+  const ACCOUNT_KEY = "nbbang_calc_account_v1";
+
+  let isSharedView = false;
+  let resetConfirmTimer = null;
+  let statusTimer = null;
+
+  function loadSavedAccount() {
+    try { return localStorage.getItem(ACCOUNT_KEY) || ""; } catch { return ""; }
+  }
+
+  function saveSavedAccount(acc) {
+    try { localStorage.setItem(ACCOUNT_KEY, acc || ""); } catch {}
+  }
+
+  function blankState(keepAccount = true) {
+    return {
+      account: keepAccount ? loadSavedAccount() : "",
+      mode: "floor100",
+      rounds: [{ title: "1차 식당", food: 0, alcohol: 0, drink: 0 }],
+      members: []
+    };
+  }
+
+  function sampleState() {
+    return {
+      account: state.account || loadSavedAccount(),
+      mode: "floor100",
+      rounds: [
+        { title: "1차 고깃집", food: 120000, alcohol: 36000, drink: 8000 },
+        { title: "2차 호프", food: 48000, alcohol: 30000, drink: 4000 }
+      ],
+      members: [
+        { name: "철수", s: ["drink", "drink"] },
+        { name: "영희", s: ["drink", "drink"] },
+        { name: "민수", s: ["drink", "off"] },
+        { name: "지영", s: ["nodrink", "nodrink"] },
+        { name: "태호", s: ["nodrink", "drink"] }
+      ]
+    };
+  }
+
+  function escHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function fmt(n) {
+    return Math.round(Number(n) || 0).toLocaleString("ko-KR");
+  }
+
+  function parseWon(str) {
+    const cleaned = String(str ?? "").replace(/[^\d]/g, "");
+    if (!cleaned) return 0;
+    const num = Number(cleaned);
+    return Number.isFinite(num) ? Math.min(num, 999999999) : 0;
+  }
+
+  function applyRounding(val, mode) {
+    const safe = Number(val) || 0;
+    if (mode === "floor100") return Math.floor((safe + 1e-9) / 100) * 100;
+    if (mode === "round100") return Math.round(safe / 100) * 100;
+    return Math.round(safe);
+  }
+
+  function modeLabel(mode) {
+    if (mode === "floor100") return "100원 미만 버림";
+    if (mode === "round100") return "100원 단위 반올림";
+    return "1원 단위";
+  }
+
+  function encodeShareState(st) {
+    const sMap = { off: 0, drink: 1, nodrink: 2 };
+    const payload = {
+      v: 1,
+      d: st.mode,
+      a: (st.account || "").trim(),
+      r: st.rounds.map(r => [
+        r.title || "",
+        Math.round(r.food || 0),
+        Math.round(r.alcohol || 0),
+        Math.round(r.drink || 0)
+      ]),
+      m: st.members.map(m => [
+        m.name || "",
+        st.rounds.map((_, ri) => sMap[m.s[ri]] ?? 0)
+      ])
+    };
+    const json = JSON.stringify(payload);
+    const bytes = new TextEncoder().encode(json);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) {
+      bin += String.fromCharCode(bytes[i]);
+    }
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function decodeShareState(hashStr) {
+    try {
+      const m = /^#?s=([A-Za-z0-9\-_+/=]+)$/.exec((hashStr || "").trim());
+      if (!m) return null;
+      let b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+      while (b64.length % 4) b64 += "=";
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const json = new TextDecoder().decode(bytes);
+      const data = JSON.parse(json);
+      if (!data || !Array.isArray(data.r) || data.r.length === 0 || data.r.length > 30) return null;
+
+      const revMap = ["off", "drink", "nodrink"];
+      const validModes = ["floor100", "round100", "exact"];
+      const mode = validModes.includes(data.d) ? data.d : "floor100";
+      const account = typeof data.a === "string" ? data.a.slice(0, 120) : "";
+
+      const rounds = data.r.map((r, i) => ({
+        title: typeof r[0] === "string" && r[0].trim() ? r[0].slice(0, 40) : `${i + 1}차`,
+        food: Math.max(0, Math.min(999999999, Number(r[1]) || 0)),
+        alcohol: Math.max(0, Math.min(999999999, Number(r[2]) || 0)),
+        drink: Math.max(0, Math.min(999999999, Number(r[3]) || 0))
+      }));
+
+      const rawMembers = Array.isArray(data.m) ? data.m.slice(0, 100) : [];
+      const members = rawMembers.map((mem, idx) => {
+        const name = typeof mem[0] === "string" && mem[0].trim() ? mem[0].slice(0, 30) : `참석자${idx + 1}`;
+        const statuses = Array.isArray(mem[1]) ? mem[1] : [];
+        return {
+          name,
+          s: rounds.map((_, ri) => {
+            const v = statuses[ri];
+            if (typeof v === "number") return revMap[v] || "off";
+            if (v === "drink" || v === "nodrink" || v === "off") return v;
+            return "off";
+          })
+        };
+      });
+
+      return { mode, account, rounds, members };
+    } catch {
+      return null;
+    }
+  }
+
+  function loadLocalState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.rounds) && parsed.rounds.length > 0 && Array.isArray(parsed.members)) {
+          const validModes = ["floor100", "round100", "exact"];
+          return {
+            account: typeof parsed.account === "string" ? parsed.account : loadSavedAccount(),
+            mode: validModes.includes(parsed.mode) ? parsed.mode : "floor100",
+            rounds: parsed.rounds.map((r, i) => ({
+              title: typeof r.title === "string" ? r.title : `${i + 1}차`,
+              food: Math.max(0, Number(r.food) || 0),
+              alcohol: Math.max(0, Number(r.alcohol) || 0),
+              drink: Math.max(0, Number(r.drink) || 0)
+            })),
+            members: parsed.members.map(m => ({
+              name: typeof m.name === "string" ? m.name : "참석자",
+              s: parsed.rounds.map((_, ri) => {
+                const v = Array.isArray(m.s) ? m.s[ri] : "off";
+                return (v === "drink" || v === "nodrink" || v === "off") ? v : "off";
+              })
+            }))
+          };
+        }
+      }
+    } catch {}
+    return blankState(true);
+  }
+
+  let state = null;
+
+  function initFromLocation() {
+    const shared = decodeShareState(window.location.hash);
+    if (shared) {
+      state = shared;
+      isSharedView = true;
+    } else {
+      state = loadLocalState();
+      isSharedView = false;
+    }
+    updateSharedBanner();
+  }
+
+  function updateSharedBanner() {
+    const banner = document.getElementById("sharedBanner");
+    banner.classList.toggle("visible", isSharedView);
+  }
+
+  function clearUrlHash() {
+    try {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    } catch {
+      window.location.hash = "";
+    }
+  }
+
+  function saveState() {
+    if (isSharedView) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      saveSavedAccount(state.account);
+    } catch {}
+  }
+
+  function calcRound(idx) {
+    const r = state.rounds[idx];
+    const drinkCnt = state.members.filter(m => m.s[idx] === "drink").length;
+    const noDrinkCnt = state.members.filter(m => m.s[idx] === "nodrink").length;
+    const totalCnt = drinkCnt + noDrinkCnt;
+    const foodEach = totalCnt > 0 ? r.food / totalCnt : 0;
+    const alcEach = drinkCnt > 0 ? r.alcohol / drinkCnt : 0;
+    const drkEach = noDrinkCnt > 0 ? r.drink / noDrinkCnt : 0;
+    return {
+      total: r.food + r.alcohol + r.drink,
+      drinkCnt,
+      noDrinkCnt,
+      totalCnt,
+      foodEach,
+      alcEach,
+      drkEach,
+      drinkUnit: drinkCnt > 0 ? foodEach + alcEach : 0,
+      noDrinkUnit: noDrinkCnt > 0 ? foodEach + drkEach : 0
+    };
+  }
+
+  function roundWarnings(r, c) {
+    const warns = [];
+    if (r.food > 0 && c.totalCnt === 0) warns.push("음식 금액이 있지만 참석자가 0명입니다.");
+    if (r.alcohol > 0 && c.drinkCnt === 0) warns.push("술 금액이 있지만 '술' 참석자가 0명입니다.");
+    if (r.drink > 0 && c.noDrinkCnt === 0) warns.push("음료 금액이 있지만 '술X' 참석자가 0명입니다.");
+    return warns;
+  }
+
+  function renderRounds() {
+    const grid = document.getElementById("roundsGrid");
+    document.getElementById("roundCountChip").textContent = `${state.rounds.length}곳`;
+
+    grid.innerHTML = state.rounds.map((r, idx) => {
+      const c = calcRound(idx);
+      const warns = roundWarnings(r, c);
+      const delBtn = state.rounds.length > 1
+        ? `<button type="button" class="del-btn" data-del-round="${idx}" title="장소 삭제" aria-label="장소 삭제">✕</button>`
+        : "";
+      const bulkHtml = state.members.length > 0
+        ? `<div class="bulk-row">
+            <span class="bulk-label">일괄</span>
+            <button type="button" class="btn btn-sm" data-bulk-r="${idx}" data-bulk-v="drink">전원 술</button>
+            <button type="button" class="btn btn-sm" data-bulk-r="${idx}" data-bulk-v="nodrink">전원 술X</button>
+            <button type="button" class="btn btn-sm" data-bulk-r="${idx}" data-bulk-v="off">전원 불참</button>
+          </div>`
+        : "";
+
+      return `
+        <div class="card" data-round-card="${idx}">
+          <div class="card-head">
+            <div class="round-title-wrap">
+              <input class="round-title-input" type="text" data-rtitle="${idx}" value="${escHtml(r.title)}" placeholder="${idx + 1}차 장소명" aria-label="${idx + 1}차 장소명" />
+            </div>
+            <div class="round-meta">
+              <span class="round-headcount">${c.totalCnt}명 (술${c.drinkCnt}·X${c.noDrinkCnt})</span>
+              ${delBtn}
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="r-${idx}-food">음식</label>
+            <input id="r-${idx}-food" class="input-box num-input" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="0" data-r="${idx}" data-f="food" value="${r.food ? fmt(r.food) : ""}" />
+            <span class="unit-pill" data-pill="food">인당 ${fmt(c.foodEach)}원</span>
+          </div>
+
+          <div class="field-row">
+            <label for="r-${idx}-alcohol">술</label>
+            <input id="r-${idx}-alcohol" class="input-box num-input" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="0" data-r="${idx}" data-f="alcohol" value="${r.alcohol ? fmt(r.alcohol) : ""}" />
+            <span class="unit-pill" data-pill="alcohol">인당 ${fmt(c.alcEach)}원</span>
+          </div>
+
+          <div class="field-row">
+            <label for="r-${idx}-drink">음료</label>
+            <input id="r-${idx}-drink" class="input-box num-input" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="0" data-r="${idx}" data-f="drink" value="${r.drink ? fmt(r.drink) : ""}" />
+            <span class="unit-pill" data-pill="drink">인당 ${fmt(c.drkEach)}원</span>
+          </div>
+
+          <div data-warn-box>${warns.length ? `<div class="round-warn">⚠️ ${escHtml(warns.join(" "))}</div>` : ""}</div>
+
+          ${bulkHtml}
+
+          <div class="round-summary" data-summary-box>
+            <span class="round-total">합계 ${fmt(c.total)}원</span>
+            <div class="badges">
+              <span class="badge">술 ${c.drinkCnt ? fmt(c.drinkUnit) + "원" : "-"}</span>
+              <span class="badge badge-alt">술X ${c.noDrinkCnt ? fmt(c.noDrinkUnit) + "원" : "-"}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function updateRoundCardLive(idx) {
+    const card = document.querySelector(`[data-round-card="${idx}"]`);
+    if (!card) return;
+    const r = state.rounds[idx];
+    const c = calcRound(idx);
+    const warns = roundWarnings(r, c);
+    card.querySelector('[data-pill="food"]').textContent = `인당 ${fmt(c.foodEach)}원`;
+    card.querySelector('[data-pill="alcohol"]').textContent = `인당 ${fmt(c.alcEach)}원`;
+    card.querySelector('[data-pill="drink"]').textContent = `인당 ${fmt(c.drkEach)}원`;
+    card.querySelector("[data-warn-box]").innerHTML = warns.length
+      ? `<div class="round-warn">⚠️ ${escHtml(warns.join(" "))}</div>`
+      : "";
+    card.querySelector("[data-summary-box]").innerHTML = `
+      <span class="round-total">합계 ${fmt(c.total)}원</span>
+      <div class="badges">
+        <span class="badge">술 ${c.drinkCnt ? fmt(c.drinkUnit) + "원" : "-"}</span>
+        <span class="badge badge-alt">술X ${c.noDrinkCnt ? fmt(c.noDrinkUnit) + "원" : "-"}</span>
+      </div>
+    `;
+  }
+
+  function renderMembers() {
+    const calcs = state.rounds.map((_, idx) => calcRound(idx));
+    const list = document.getElementById("memberList");
+    document.getElementById("memberCountChip").textContent = `${state.members.length}명`;
+
+    let collectSum = 0;
+
+    if (!state.members.length) {
+      list.innerHTML = `
+        <div class="card empty-card">
+          <p>아직 등록된 참석 인원이 없어요.<br>위 입력창에 이름을 추가하거나 예시를 불러와 보세요.</p>
+          <button type="button" class="btn btn-soft btn-sm" data-load-sample="1">예시 불러오기</button>
+        </div>
+      `;
+    } else {
+      list.innerHTML = state.members.map((m, mi) => {
+        let rawSum = 0;
+        const rowsHtml = state.rounds.map((r, ri) => {
+          const st = m.s[ri] || "off";
+          const amt = st === "drink" ? calcs[ri].drinkUnit : st === "nodrink" ? calcs[ri].noDrinkUnit : 0;
+          rawSum += amt;
+          const label = r.title.trim() || `${ri + 1}차`;
+          return `
+            <div class="mr-row">
+              <span class="mr-label" title="${escHtml(label)}">${escHtml(label)}</span>
+              <div class="mr-right">
+                <div class="seg" role="group" aria-label="${escHtml(m.name)} ${escHtml(label)} 참석 여부">
+                  <button type="button" class="${st === "drink" ? "on-drink" : ""}" data-m="${mi}" data-r="${ri}" data-v="drink">술</button>
+                  <button type="button" class="${st === "nodrink" ? "on-nodrink" : ""}" data-m="${mi}" data-r="${ri}" data-v="nodrink">술X</button>
+                  <button type="button" class="${st === "off" ? "on-off" : ""}" data-m="${mi}" data-r="${ri}" data-v="off">불참</button>
+                </div>
+                <span class="mr-amt">${st !== "off" && amt > 0 ? fmt(amt) + "원" : "-"}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        const total = applyRounding(rawSum, state.mode);
+        collectSum += total;
+        return `
+          <div class="card member-card">
+            <div class="member-top">
+              <span class="member-name">${escHtml(m.name)}</span>
+              <div class="member-top-right">
+                <span class="member-total">${fmt(total)}원</span>
+                <button type="button" class="del-btn" data-del-m="${mi}" title="인원 삭제" aria-label="${escHtml(m.name)} 삭제">✕</button>
+              </div>
+            </div>
+            <div class="member-rounds">${rowsHtml}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    const actualSum = calcs.reduce((acc, c) => acc + c.total, 0);
+    const diff = collectSum - actualSum;
+    document.getElementById("actualTotal").textContent = `${fmt(actualSum)}원`;
+    document.getElementById("collectTotal").textContent = `${fmt(collectSum)}원`;
+    const diffEl = document.getElementById("diffText");
+    diffEl.textContent = `${diff > 0 ? "+" : ""}${fmt(diff)}원`;
+    diffEl.className = `kpi-val ${diff === 0 ? "pos" : diff < 0 ? "neg" : "primary"}`;
+  }
+
+  function refresh() {
+    document.getElementById("roundMode").value = state.mode;
+    document.getElementById("accountInput").value = state.account || "";
+    saveState();
+    renderRounds();
+    renderMembers();
+  }
+
+  function setCopyStatus(msg, ok = true) {
+    const el = document.getElementById("copyStatus");
+    el.textContent = msg;
+    el.className = ok ? "copy-status" : "copy-status warn";
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => { el.textContent = ""; }, 3500);
+  }
+
+  function showFallbackBox(text, title) {
+    const box = document.getElementById("fallbackBox");
+    const ta = document.getElementById("copyPreview");
+    document.getElementById("fallbackTitle").textContent = title;
+    ta.value = text;
+    ta.rows = Math.min(12, Math.max(3, text.split("\n").length + 1));
+    box.classList.add("visible");
+  }
+
+  async function copyWithFallback(text, label) {
+    showFallbackBox(text, label);
+    let copied = false;
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch {}
+    }
+    if (!copied) {
+      try {
+        const ta = document.getElementById("copyPreview");
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        copied = document.execCommand("copy");
+      } catch {}
+    }
+    if (copied) {
+      setCopyStatus(`${label}가 복사되었어요!`, true);
+    } else {
+      setCopyStatus("자동 복사가 막혀 있어요. 아래 박스에서 '전체 선택' 후 복사해 주세요.", false);
+    }
+  }
+
+  function buildKakaoText() {
+    const calcs = state.rounds.map((_, i) => calcRound(i));
+    const actualSum = calcs.reduce((a, c) => a + c.total, 0);
+    const lines = [`[모임 N빵 정산] 총 ${fmt(actualSum)}원`];
+    state.rounds.forEach((r, i) => {
+      const c = calcs[i];
+      const title = r.title.trim() || `${i + 1}차`;
+      const parts = [];
+      if (c.drinkCnt > 0) parts.push(`술 ${fmt(c.drinkUnit)}원`);
+      if (c.noDrinkCnt > 0) parts.push(`술X ${fmt(c.noDrinkUnit)}원`);
+      const detail = parts.length ? parts.join(" / ") : "참석자 없음";
+      lines.push(`• ${title} (${fmt(c.total)}원): ${detail}`);
+    });
+    lines.push(`※ 기준: ${modeLabel(state.mode)}`);
+    lines.push("----------------");
+
+    let anyPerson = false;
+    state.members.forEach(m => {
+      const raw = state.rounds.reduce((sum, _, ri) => {
+        const st = m.s[ri] || "off";
+        return sum + (st === "drink" ? calcs[ri].drinkUnit : st === "nodrink" ? calcs[ri].noDrinkUnit : 0);
+      }, 0);
+      const tot = applyRounding(raw, state.mode);
+      if (tot > 0) {
+        anyPerson = true;
+        lines.push(`${m.name}: ${fmt(tot)}원`);
+      }
+    });
+    if (!anyPerson) lines.push("(정산 대상 인원 없음)");
+
+    if ((state.account || "").trim()) {
+      lines.push("----------------");
+      lines.push(`입금 계좌: ${state.account.trim()}`);
+    }
+    return lines.join("\n");
+  }
+
+  function addMembersFromInput() {
+    const inp = document.getElementById("newNames");
+    const names = inp.value.split(/[,/\n]+/).map(x => x.trim()).filter(Boolean);
+    if (!names.length) return;
+    names.forEach(name => {
+      state.members.push({
+        name: name.slice(0, 30),
+        s: state.rounds.map((_, i) => i === 0 ? "drink" : "off")
+      });
+    });
+    inp.value = "";
+    refresh();
+  }
+
+  function loadExample() {
+    isSharedView = false;
+    clearUrlHash();
+    updateSharedBanner();
+    state = sampleState();
+    refresh();
+    setCopyStatus("예시 데이터를 불러왔어요.", true);
+  }
+
+  // Event bindings
+  const roundsGrid = document.getElementById("roundsGrid");
+
+  roundsGrid.addEventListener("focusin", e => {
+    const t = e.target;
+    if (t.dataset.r !== undefined) {
+      const val = state.rounds[Number(t.dataset.r)][t.dataset.f];
+      t.value = val ? String(val) : "";
+    }
+  });
+
+  roundsGrid.addEventListener("focusout", e => {
+    const t = e.target;
+    if (t.dataset.r !== undefined) {
+      const val = state.rounds[Number(t.dataset.r)][t.dataset.f];
+      t.value = val ? fmt(val) : "";
+    }
+  });
+
+  roundsGrid.addEventListener("input", e => {
+    const t = e.target;
+    if (t.dataset.r !== undefined) {
+      const idx = Number(t.dataset.r);
+      state.rounds[idx][t.dataset.f] = parseWon(t.value);
+      saveState();
+      updateRoundCardLive(idx);
+      renderMembers();
+    } else if (t.dataset.rtitle !== undefined) {
+      const idx = Number(t.dataset.rtitle);
+      state.rounds[idx].title = t.value.slice(0, 40);
+      saveState();
+      renderMembers();
+    }
+  });
+
+  roundsGrid.addEventListener("click", e => {
+    const del = e.target.closest("button[data-del-round]");
+    if (del) {
+      if (state.rounds.length <= 1) return;
+      const idx = Number(del.dataset.delRound);
+      state.rounds.splice(idx, 1);
+      state.members.forEach(m => m.s.splice(idx, 1));
+      refresh();
+      return;
+    }
+    const bulk = e.target.closest("button[data-bulk-r]");
+    if (bulk) {
+      const ri = Number(bulk.dataset.bulkR);
+      const v = bulk.dataset.bulkV;
+      state.members.forEach(m => { m.s[ri] = v; });
+      refresh();
+    }
+  });
+
+  document.getElementById("memberList").addEventListener("click", e => {
+    const sampleTrigger = e.target.closest("button[data-load-sample]");
+    if (sampleTrigger) {
+      loadExample();
+      return;
+    }
+    const btn = e.target.closest("button[data-v]");
+    if (btn) {
+      state.members[Number(btn.dataset.m)].s[Number(btn.dataset.r)] = btn.dataset.v;
+      refresh();
+      return;
+    }
+    const del = e.target.closest("button[data-del-m]");
+    if (del) {
+      state.members.splice(Number(del.dataset.delM), 1);
+      refresh();
+    }
+  });
+
+  document.getElementById("addRoundBtn").addEventListener("click", () => {
+    const nextNum = state.rounds.length + 1;
+    state.rounds.push({ title: `${nextNum}차`, food: 0, alcohol: 0, drink: 0 });
+    state.members.forEach(m => m.s.push("off"));
+    refresh();
+  });
+
+  document.getElementById("addBtn").addEventListener("click", addMembersFromInput);
+  document.getElementById("newNames").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.isComposing) {
+      e.preventDefault();
+      addMembersFromInput();
+    }
+  });
+
+  document.getElementById("sampleBtn").addEventListener("click", loadExample);
+
+  const resetBtn = document.getElementById("resetBlankBtn");
+  resetBtn.addEventListener("click", () => {
+    const hasData = state.members.length > 0 || state.rounds.length > 1 || state.rounds.some(r => r.food || r.alcohol || r.drink);
+    if (hasData && resetBtn.dataset.armed !== "1") {
+      resetBtn.dataset.armed = "1";
+      resetBtn.textContent = "한 번 더 눌러 초기화";
+      resetBtn.classList.add("btn-danger-confirm");
+      clearTimeout(resetConfirmTimer);
+      resetConfirmTimer = setTimeout(() => {
+        resetBtn.dataset.armed = "0";
+        resetBtn.textContent = "초기화";
+        resetBtn.classList.remove("btn-danger-confirm");
+      }, 3000);
+      return;
+    }
+    clearTimeout(resetConfirmTimer);
+    resetBtn.dataset.armed = "0";
+    resetBtn.textContent = "초기화";
+    resetBtn.classList.remove("btn-danger-confirm");
+    isSharedView = false;
+    clearUrlHash();
+    updateSharedBanner();
+    state = blankState(true);
+    document.getElementById("fallbackBox").classList.remove("visible");
+    refresh();
+    setCopyStatus("빈 양식으로 초기화했어요.", true);
+  });
+
+  document.getElementById("startFreshBtn").addEventListener("click", () => {
+    isSharedView = false;
+    clearUrlHash();
+    updateSharedBanner();
+    state = blankState(true);
+    document.getElementById("fallbackBox").classList.remove("visible");
+    refresh();
+    setCopyStatus("새 정산을 시작합니다.", true);
+  });
+
+  document.getElementById("adoptSharedBtn").addEventListener("click", () => {
+    isSharedView = false;
+    clearUrlHash();
+    updateSharedBanner();
+    saveState();
+    setCopyStatus("이 정산 내역을 내 기기에 저장했어요.", true);
+  });
+
+  document.getElementById("roundMode").addEventListener("change", e => {
+    state.mode = e.target.value;
+    refresh();
+  });
+
+  document.getElementById("accountInput").addEventListener("input", e => {
+    state.account = e.target.value;
+    saveState();
+  });
+
+  document.getElementById("copyTextBtn").addEventListener("click", () => {
+    copyWithFallback(buildKakaoText(), "카톡 공유용 텍스트");
+  });
+
+  document.getElementById("copyLinkBtn").addEventListener("click", () => {
+    const encoded = encodeShareState(state);
+    const base = window.location.href.split("#")[0];
+    const url = `${base}#s=${encoded}`;
+    copyWithFallback(url, "정산 결과 링크");
+  });
+
+  document.getElementById("selectAllBtn").addEventListener("click", () => {
+    const ta = document.getElementById("copyPreview");
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+  });
+
+  document.getElementById("closeFallbackBtn").addEventListener("click", () => {
+    document.getElementById("fallbackBox").classList.remove("visible");
+  });
+
+  window.addEventListener("hashchange", () => {
+    initFromLocation();
+    refresh();
+  });
+
+  initFromLocation();
+  refresh();
+})();
+</script>
+</body>
+</html>
